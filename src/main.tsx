@@ -1,4 +1,4 @@
-// src/main.tsx (добавь обёртку AuthProvider)
+// src/main.tsx 
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";

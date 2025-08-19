@@ -7,6 +7,6 @@ type Props = { children: ReactNode };
 
 export function RequireAuth({ children }: Props) {
   const { user, loading } = useAuth();
-  if (loading) return null; // тут можешь вернуть спиннер
+  if (loading) return null; 
   return user ? <>{children}</> : <Navigate to="/auth/register" replace />;
 }

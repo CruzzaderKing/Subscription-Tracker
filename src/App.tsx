@@ -13,7 +13,7 @@ import LoginPage from "./pages/auth/Login";
 
 function PublicOnly({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return null; // тут можно показать спиннер
+  if (loading) return null; 
   return user ? <Navigate to="/" replace /> : <>{children}</>;
 }
 

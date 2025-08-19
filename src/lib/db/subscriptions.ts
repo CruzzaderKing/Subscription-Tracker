@@ -14,7 +14,10 @@ import type { Subscription } from "../../types/subscription";
 
 const subsCol = (uid: string) => collection(db, "users", uid, "subscriptions");
 
-export function listenSubscriptions(uid: string, cb: (rows: Subscription[]) => void) {
+export function listenSubscriptions(
+  uid: string,
+  cb: (rows: Subscription[]) => void
+) {
   const q = query(subsCol(uid), orderBy("name"));
   return onSnapshot(q, (snap) => {
     const rows: Subscription[] = snap.docs.map((d) => ({
@@ -25,7 +28,10 @@ export function listenSubscriptions(uid: string, cb: (rows: Subscription[]) => v
   });
 }
 
-export async function createSubscription(uid: string, data: Omit<Subscription, "id">) {
+export async function createSubscription(
+  uid: string,
+  data: Omit<Subscription, "id">
+) {
   await addDoc(subsCol(uid), data);
 }
 
@@ -37,16 +43,33 @@ export async function updateSubscription(
   await updateDoc(doc(db, "users", uid, "subscriptions", id), patch as any);
 }
 
-export async function removeSubscription(uid: string, id: string) {
+export async function deleteSubscription(uid: string, id: string) {
   await deleteDoc(doc(db, "users", uid, "subscriptions", id));
 }
 
-// опционально: одноразовый сид
 export async function seedSubscriptions(uid: string) {
   const demo: Omit<Subscription, "id">[] = [
-    { name: "Netflix (Premium)", status: "Активна", cycle: "Ежемесячно", startDate: "15 сен 2025 г.", amount: 1199 },
-    { name: "Яндекс Плюс",       status: "Активна", cycle: "Ежемесячно", startDate: "1 окт 2025 г.",  amount: 299  },
-    { name: "Adobe CC",          status: "Отменена", cycle: "Ежемесячно", startDate: "--------------", amount: 5290 },
+    {
+      name: "Netflix (Premium)",
+      status: "Активна",
+      cycle: "Ежемесячно",
+      startDate: "15 сен 2025 г.",
+      amount: 1199,
+    },
+    {
+      name: "Яндекс Плюс",
+      status: "Активна",
+      cycle: "Ежемесячно",
+      startDate: "1 окт 2025 г.",
+      amount: 299,
+    },
+    {
+      name: "Adobe CC",
+      status: "Отменена",
+      cycle: "Ежемесячно",
+      startDate: "--------------",
+      amount: 5290,
+    },
   ];
   for (const item of demo) await addDoc(subsCol(uid), item);
 }

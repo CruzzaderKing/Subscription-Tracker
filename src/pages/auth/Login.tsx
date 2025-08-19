@@ -29,7 +29,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      window.location.assign("/"); // на главную
+      window.location.assign("/");
     } catch (err: any) {
       toast({
         title: "Не удалось войти",

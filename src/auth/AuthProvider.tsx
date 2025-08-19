@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, type User, signInWithPopup, signOut } from "firebase/auth";
 import { auth, googleProvider } from "../lib/firebase";
-import { ensureUserProfile } from "../lib/userProfile";
+import { ensureUserProfile } from "../lib/db/userProfile";
 
 type AuthContextType = {
   user: User | null;
