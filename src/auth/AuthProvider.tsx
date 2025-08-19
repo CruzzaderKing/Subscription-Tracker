@@ -30,7 +30,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (u) {
         try {
           await ensureUserProfile(u);
-        } catch {}
+        } catch (err) {
+          console.debug('ensureUserProfile skipped', err);
+        }
       }
     });
   }, []);
