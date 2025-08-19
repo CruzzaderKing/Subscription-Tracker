@@ -1,7 +1,10 @@
 // src/lib/firebase.ts
 import { initializeApp } from "firebase/app";
 import {
-  getAuth, GoogleAuthProvider, setPersistence, browserLocalPersistence,
+  getAuth,
+  GoogleAuthProvider,
+  setPersistence,
+  browserLocalPersistence,
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
@@ -14,7 +17,7 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 setPersistence(auth, browserLocalPersistence);

@@ -1,13 +1,19 @@
 // src/App.tsx
-import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  HashRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import MainContent from "./pages/main/MainContent";
 import RegisterPage from "./pages/auth/Register";
 import { RequireAuth } from "./auth/RequireAuth";
 import { useAuth } from "./auth/AuthProvider";
+import LoginPage from "./pages/auth/Login";
 
 function PublicOnly({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return null;              // тут можно показать спиннер
+  if (loading) return null; // тут можно показать спиннер
   return user ? <Navigate to="/" replace /> : <>{children}</>;
 }
 
@@ -28,6 +34,14 @@ export default function App() {
           element={
             <PublicOnly>
               <RegisterPage />
+            </PublicOnly>
+          }
+        />
+        <Route
+          path="/auth/login"
+          element={
+            <PublicOnly>
+              <LoginPage />
             </PublicOnly>
           }
         />

@@ -1,6 +1,6 @@
 //src/types/subscriptiopn.ts
 export interface Subscription {
-  id: number;
+  id: string;
   name: string;
   status: "Активна" | "Остановлена" | "Отменена";
   cycle: string;
