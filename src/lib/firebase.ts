@@ -1,12 +1,12 @@
 // src/lib/firebase.ts
-import { initializeApp } from "firebase/app";
+import { initializeApp } from 'firebase/app';
 import {
+  browserLocalPersistence,
   getAuth,
   GoogleAuthProvider,
   setPersistence,
-  browserLocalPersistence,
-} from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+} from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -25,4 +25,4 @@ setPersistence(auth, browserLocalPersistence);
 export const db = getFirestore(app);
 
 export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({ prompt: "select_account" });
+googleProvider.setCustomParameters({ prompt: 'select_account' });

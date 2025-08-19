@@ -1,5 +1,4 @@
 // src/components/SubscriptionsTable.tsx
-import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   Badge,
   Box,
@@ -24,41 +23,43 @@ import {
   Table,
   Tbody,
   Td,
+  Text,
   Th,
   Thead,
   Tr,
-  Text,
   useDisclosure,
   useToast,
-} from "@chakra-ui/react";
-import type { Subscription } from "../types/subscription";
-import { useAuth } from "../auth/AuthProvider";
-import {
-  listenSubscriptions,
-  createSubscription,
-  updateSubscription,
-  deleteSubscription,
-} from "../lib/db/subscriptions";
+} from '@chakra-ui/react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 
-const STATUS_COLOR: Record<Subscription["status"], string> = {
-  Активна: "green",
-  Отменена: "red",
-  Остановлена: "gray",
+import { useAuth } from '../auth/AuthProvider';
+import {
+  createSubscription,
+  deleteSubscription,
+  listenSubscriptions,
+  updateSubscription,
+} from '../lib/db/subscriptions';
+import type { Subscription } from '../types/subscription';
+
+const STATUS_COLOR: Record<Subscription['status'], string> = {
+  Активна: 'green',
+  Отменена: 'red',
+  Остановлена: 'gray',
 };
 
 function formatMoney(v: number) {
-  return new Intl.NumberFormat("ru-RU", {
-    style: "currency",
-    currency: "RUB",
+  return new Intl.NumberFormat('ru-RU', {
+    style: 'currency',
+    currency: 'RUB',
     maximumFractionDigits: 0,
   }).format(v);
 }
 
-type EditingState = Omit<Subscription, "id"> & { id?: string };
+type EditingState = Omit<Subscription, 'id'> & { id?: string };
 
 export default function SubscriptionsTable() {
   const { user } = useAuth();
-  const uid = user?.uid ?? "";
+  const uid = user?.uid ?? '';
 
   const [items, setItems] = useState<Subscription[]>([]);
   const [editing, setEditing] = useState<EditingState | null>(null);
@@ -74,17 +75,14 @@ export default function SubscriptionsTable() {
     return listenSubscriptions(uid, setItems);
   }, [uid]);
 
-  const total = useMemo(
-    () => items.reduce((s, x) => s + (Number(x.amount) || 0), 0),
-    [items]
-  );
+  const total = useMemo(() => items.reduce((s, x) => s + (Number(x.amount) || 0), 0), [items]);
 
   const openCreate = () => {
     setEditing({
-      name: "",
-      status: "Активна",
-      cycle: "Ежемесячно",
-      startDate: "",
+      name: '',
+      status: 'Активна',
+      cycle: 'Ежемесячно',
+      startDate: '',
       amount: 0,
     });
     modal.onOpen();
@@ -98,12 +96,12 @@ export default function SubscriptionsTable() {
   const remove = async (id: string) => {
     try {
       await deleteSubscription(uid, id);
-      toast({ title: "Подписка удалена", status: "info" });
+      toast({ title: 'Подписка удалена', status: 'info' });
     } catch (e: any) {
       toast({
-        title: "Ошибка удаления",
+        title: 'Ошибка удаления',
         description: e?.message,
-        status: "error",
+        status: 'error',
       });
     }
   };
@@ -120,12 +118,12 @@ export default function SubscriptionsTable() {
       }
       modal.onClose();
       setEditing(null);
-      toast({ title: id ? "Сохранено" : "Добавлено", status: "success" });
+      toast({ title: id ? 'Сохранено' : 'Добавлено', status: 'success' });
     } catch (e: any) {
       toast({
-        title: "Ошибка сохранения",
+        title: 'Ошибка сохранения',
         description: e?.message,
-        status: "error",
+        status: 'error',
       });
     }
   };
@@ -142,13 +140,7 @@ export default function SubscriptionsTable() {
       </Flex>
 
       <Box borderWidth="1px" borderRadius="lg" overflow="hidden">
-        <Box
-          px={4}
-          py={3}
-          borderBottomWidth="1px"
-          bg="gray.50"
-          _dark={{ bg: "whiteAlpha.100" }}
-        >
+        <Box px={4} py={3} borderBottomWidth="1px" bg="gray.50" _dark={{ bg: 'whiteAlpha.100' }}>
           <Text fontWeight="semibold">Подписки</Text>
         </Box>
 
@@ -170,19 +162,16 @@ export default function SubscriptionsTable() {
                 <Tr
                   key={s.id}
                   _hover={{
-                    bg: "blackAlpha.50",
-                    _dark: { bg: "whiteAlpha.100" },
+                    bg: 'blackAlpha.50',
+                    _dark: { bg: 'whiteAlpha.100' },
                   }}
                 >
-                  <Td>{String(idx + 1).padStart(2, "0")}</Td>
+                  <Td>{String(idx + 1).padStart(2, '0')}</Td>
                   <Td>
                     <Text fontWeight="medium">{s.name}</Text>
                   </Td>
                   <Td>
-                    <Badge
-                      colorScheme={STATUS_COLOR[s.status]}
-                      variant="subtle"
-                    >
+                    <Badge colorScheme={STATUS_COLOR[s.status]} variant="subtle">
                       {s.status}
                     </Badge>
                   </Td>
@@ -191,18 +180,11 @@ export default function SubscriptionsTable() {
                   <Td isNumeric>{formatMoney(Number(s.amount) || 0)}</Td>
                   <Td textAlign="right">
                     <Menu placement="bottom-end">
-                      <MenuButton
-                        as={IconButton}
-                        aria-label="Действия"
-                        size="sm"
-                        variant="ghost"
-                      >
+                      <MenuButton as={IconButton} aria-label="Действия" size="sm" variant="ghost">
                         ⋮
                       </MenuButton>
                       <MenuList>
-                        <MenuItem onClick={() => openEdit(s)}>
-                          Изменить
-                        </MenuItem>
+                        <MenuItem onClick={() => openEdit(s)}>Изменить</MenuItem>
                         <MenuItem color="red.500" onClick={() => remove(s.id!)}>
                           Удалить
                         </MenuItem>
@@ -229,32 +211,28 @@ export default function SubscriptionsTable() {
       <Modal isOpen={modal.isOpen} onClose={modal.onClose} size="md">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>
-            {editing?.id ? "Изменить подписку" : "Новая подписка"}
-          </ModalHeader>
+          <ModalHeader>{editing?.id ? 'Изменить подписку' : 'Новая подписка'}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
               <FormField label="Название">
                 <Input
-                  value={editing?.name ?? ""}
-                  onChange={(e) =>
-                    setEditing((p) => (p ? { ...p, name: e.target.value } : p))
-                  }
+                  value={editing?.name ?? ''}
+                  onChange={(e) => setEditing((p) => (p ? { ...p, name: e.target.value } : p))}
                 />
               </FormField>
 
               <FormField label="Статус">
                 <Select
-                  value={editing?.status ?? "Активна"}
+                  value={editing?.status ?? 'Активна'}
                   onChange={(e) =>
                     setEditing((p) =>
                       p
                         ? {
                             ...p,
-                            status: e.target.value as Subscription["status"],
+                            status: e.target.value as Subscription['status'],
                           }
-                        : p
+                        : p,
                     )
                   }
                 >
@@ -266,10 +244,8 @@ export default function SubscriptionsTable() {
 
               <FormField label="Цикл оплаты">
                 <Select
-                  value={editing?.cycle ?? "Ежемесячно"}
-                  onChange={(e) =>
-                    setEditing((p) => (p ? { ...p, cycle: e.target.value } : p))
-                  }
+                  value={editing?.cycle ?? 'Ежемесячно'}
+                  onChange={(e) => setEditing((p) => (p ? { ...p, cycle: e.target.value } : p))}
                 >
                   <option value="Ежемесячно">Ежемесячно</option>
                   <option value="Ежегодно">Ежегодно</option>
@@ -280,11 +256,9 @@ export default function SubscriptionsTable() {
                 <FormField label="Дата начала">
                   <Input
                     placeholder="15 сен 2025 г."
-                    value={editing?.startDate ?? ""}
+                    value={editing?.startDate ?? ''}
                     onChange={(e) =>
-                      setEditing((p) =>
-                        p ? { ...p, startDate: e.target.value } : p
-                      )
+                      setEditing((p) => (p ? { ...p, startDate: e.target.value } : p))
                     }
                   />
                 </FormField>
@@ -296,9 +270,7 @@ export default function SubscriptionsTable() {
                     step={1}
                     value={editing?.amount ?? 0}
                     onChange={(e) =>
-                      setEditing((p) =>
-                        p ? { ...p, amount: Number(e.target.value) } : p
-                      )
+                      setEditing((p) => (p ? { ...p, amount: Number(e.target.value) } : p))
                     }
                   />
                 </FormField>
@@ -309,11 +281,7 @@ export default function SubscriptionsTable() {
             <Button variant="ghost" mr={3} onClick={modal.onClose}>
               Отмена
             </Button>
-            <Button
-              colorScheme="teal"
-              onClick={save}
-              isDisabled={!editing || !editing.name.trim()}
-            >
+            <Button colorScheme="teal" onClick={save} isDisabled={!editing || !editing.name.trim()}>
               Сохранить
             </Button>
           </ModalFooter>
@@ -323,13 +291,7 @@ export default function SubscriptionsTable() {
   );
 }
 
-function FormField({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
+function FormField({ label, children }: { label: string; children: ReactNode }) {
   return (
     <Box>
       <Text fontSize="sm" mb={1}>

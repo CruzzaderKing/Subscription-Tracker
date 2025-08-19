@@ -1,24 +1,26 @@
-// src/main.tsx 
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { ChakraProvider, ColorModeScript } from "@chakra-ui/react";
-import {theme} from "./theme";
-import App from "./App";
-import "./index.css";
-import './App.css'
-import { AuthProvider } from "./auth/AuthProvider";
-import { store } from "./store";
-import { Provider } from "react-redux";
+// src/main.tsx
+import './index.css';
+import './App.css';
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { Provider } from 'react-redux';
+
+import App from './App';
+import { AuthProvider } from './auth/AuthProvider';
+import { store } from './store';
+import { theme } from './theme';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ColorModeScript initialColorMode={theme.config.initialColorMode} />
     <ChakraProvider theme={theme}>
       <Provider store={store}>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
+        <AuthProvider>
+          <App />
+        </AuthProvider>
       </Provider>
     </ChakraProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

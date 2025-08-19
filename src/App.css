@@ -1,9 +1,9 @@
 #root {
-/*  max-width: 1280px;*/
+  /*  max-width: 1280px;*/
   margin: 0 auto;
   width: 100%;
-/*  padding: 2rem;*/
-/*  text-align: center;*/
+  /*  padding: 2rem;*/
+  /*  text-align: center;*/
 }
 
 .logo {
@@ -42,16 +42,13 @@
   color: #888;
 }
 
-.container{
+.container {
   width: 100%;
   height: 100%;
   display: flex;
 }
 
-
 .recharts-pie-sector:focus,
 .recharts-pie-sector:focus-visible {
   outline: none !important;
 }
-
-

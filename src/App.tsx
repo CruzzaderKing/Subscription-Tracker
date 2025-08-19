@@ -1,19 +1,15 @@
 // src/App.tsx
-import {
-  HashRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import MainContent from "./pages/main/MainContent";
-import RegisterPage from "./pages/auth/Register";
-import { RequireAuth } from "./auth/RequireAuth";
-import { useAuth } from "./auth/AuthProvider";
-import LoginPage from "./pages/auth/Login";
+import { HashRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+
+import { useAuth } from './auth/AuthProvider';
+import { RequireAuth } from './auth/RequireAuth';
+import LoginPage from './pages/auth/Login';
+import RegisterPage from './pages/auth/Register';
+import MainContent from './pages/main/MainContent';
 
 function PublicOnly({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
-  if (loading) return null; 
+  if (loading) return null;
   return user ? <Navigate to="/" replace /> : <>{children}</>;
 }
 

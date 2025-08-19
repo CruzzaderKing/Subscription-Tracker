@@ -1,16 +1,17 @@
 import {
-  Flex,
   Avatar,
-  IconButton,
-  Text,
+  CloseButton,
   Drawer,
   DrawerContent,
   DrawerOverlay,
+  Flex,
+  IconButton,
+  Text,
   useDisclosure,
-  CloseButton,
-} from "@chakra-ui/react";
-import { FiMenu } from "react-icons/fi";
-import SidebarContent from "./SidebarContent";
+} from '@chakra-ui/react';
+import { FiMenu } from 'react-icons/fi';
+
+import SidebarContent from './SidebarContent';
 
 export default function TopBar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -30,7 +31,7 @@ export default function TopBar() {
       >
         <Flex align="center" gap={3}>
           <Avatar
-            size={{ base: "xs", md: "md" }}
+            size={{ base: 'xs', md: 'md' }}
             name="Трекер подписок и платежей"
             bg="black"
             color="white"
@@ -38,24 +39,13 @@ export default function TopBar() {
           <Text textStyle="h2">Logo</Text>
         </Flex>
 
-        <IconButton
-          aria-label="Open menu"
-          icon={<FiMenu />}
-          onClick={onOpen}
-          variant="ghost"
-        />
+        <IconButton aria-label="Open menu" icon={<FiMenu />} onClick={onOpen} variant="ghost" />
       </Flex>
 
       <Drawer isOpen={isOpen} placement="left" onClose={onClose} size="xs">
         <DrawerOverlay />
         <DrawerContent position="relative">
-          <CloseButton
-            position="absolute"
-            top={3}
-            right={3}
-            zIndex={20}
-            onClick={onClose}
-          />
+          <CloseButton position="absolute" top={3} right={3} zIndex={20} onClick={onClose} />
           <SidebarContent />
         </DrawerContent>
       </Drawer>

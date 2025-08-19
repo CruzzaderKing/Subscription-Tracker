@@ -1,5 +1,5 @@
-export const TABS = ["subs", "stats"] as const;
-export type TabKey = typeof TABS[number];
+export const TABS = ['subs', 'stats'] as const;
+export type TabKey = (typeof TABS)[number];
 
 export interface NavMenuProps {
   activeKey?: TabKey;

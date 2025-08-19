@@ -1,27 +1,27 @@
 // src/components/PaymentsTable.tsx
 import {
   Box,
-  Table,
-  TableContainer,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  useColorModeValue,
-  Text,
   IconButton,
   Menu,
   MenuButton,
-  MenuList,
   MenuItem,
-} from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
-import { FiMoreVertical, FiEdit2, FiTrash2 } from "react-icons/fi";
+  MenuList,
+  Table,
+  TableContainer,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
+  useColorModeValue,
+} from '@chakra-ui/react';
+import { useEffect, useMemo, useState } from 'react';
+import { FiEdit2, FiMoreVertical, FiTrash2 } from 'react-icons/fi';
 
-import { useAuth } from "../auth/AuthProvider";
-import type { Subscription } from "../types/subscription";
-import { listenSubscriptions } from "../lib/db/subscriptions";
+import { useAuth } from '../auth/AuthProvider';
+import { listenSubscriptions } from '../lib/db/subscriptions';
+import type { Subscription } from '../types/subscription';
 
 export type PaymentRow = {
   id: string;
@@ -56,7 +56,7 @@ function tryParseRuDate(s: string): Date | null {
   const std = new Date(s);
   if (!Number.isNaN(std.getTime())) return std;
 
-  const parts = s.replace("г.", "").replace("г", "").trim().split(/\s+/);
+  const parts = s.replace('г.', '').replace('г', '').trim().split(/\s+/);
 
   if (parts.length >= 3) {
     const d = parseInt(parts[0], 10);
@@ -76,11 +76,11 @@ function daysInMonth(year: number, month: number) {
 }
 
 function formatRu(d: Date | null): string {
-  if (!d) return "—";
-  return d.toLocaleDateString("ru-RU", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
+  if (!d) return '—';
+  return d.toLocaleDateString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
   });
 }
 
@@ -93,7 +93,7 @@ function nextChargeDate(startDate: string, cycle: string): Date | null {
 
   const day = start.getDate();
 
-  if (cycle === "Ежемесячно") {
+  if (cycle === 'Ежемесячно') {
     let y = today.getFullYear();
     let m = today.getMonth();
     let d = Math.min(day, daysInMonth(y, m));
@@ -111,7 +111,7 @@ function nextChargeDate(startDate: string, cycle: string): Date | null {
     return candidate;
   }
 
-  if (cycle === "Ежегодно") {
+  if (cycle === 'Ежегодно') {
     const month = start.getMonth();
     let y = today.getFullYear();
     let d = Math.min(day, daysInMonth(y, month));
@@ -129,12 +129,12 @@ function nextChargeDate(startDate: string, cycle: string): Date | null {
 }
 
 export default function PaymentsTable({ onEdit, onDelete }: Props) {
-  const border = useColorModeValue("gray.200", "gray.700");
-  const headBg = useColorModeValue("gray.50", "gray.700");
-  const rowHover = useColorModeValue("gray.50", "gray.800");
+  const border = useColorModeValue('gray.200', 'gray.700');
+  const headBg = useColorModeValue('gray.50', 'gray.700');
+  const rowHover = useColorModeValue('gray.50', 'gray.800');
 
   const { user } = useAuth();
-  const uid = user?.uid ?? "";
+  const uid = user?.uid ?? '';
 
   const [subs, setSubs] = useState<Subscription[]>([]);
 
@@ -146,7 +146,7 @@ export default function PaymentsTable({ onEdit, onDelete }: Props) {
   const rows: PaymentRow[] = useMemo(() => {
     const withDates = subs
 
-      .filter((s) => s.status !== "Отменена")
+      .filter((s) => s.status !== 'Отменена')
       .map((s) => {
         const d = nextChargeDate(s.startDate, s.cycle);
         return {
@@ -194,12 +194,12 @@ export default function PaymentsTable({ onEdit, onDelete }: Props) {
             {rows.map((r, i) => (
               <Tr key={r.id} _hover={{ bg: rowHover }}>
                 <Td borderColor={border} w="64px">
-                  {String(i + 1).padStart(2, "0")}
+                  {String(i + 1).padStart(2, '0')}
                 </Td>
                 <Td borderColor={border}>{r.name}</Td>
                 <Td borderColor={border}>{r.date}</Td>
                 <Td borderColor={border} isNumeric>
-                  {r.amount.toLocaleString("ru-RU")} ₽
+                  {r.amount.toLocaleString('ru-RU')} ₽
                 </Td>
                 <Td borderColor={border} w="48px" textAlign="right">
                   <Menu placement="bottom-end">
@@ -209,18 +209,14 @@ export default function PaymentsTable({ onEdit, onDelete }: Props) {
                       icon={<FiMoreVertical />}
                       variant="ghost"
                       size="sm"
-                      _focus={{ boxShadow: "none", outline: "none" }}
-                      _focusVisible={{ boxShadow: "none", outline: "none" }}
+                      _focus={{ boxShadow: 'none', outline: 'none' }}
+                      _focusVisible={{ boxShadow: 'none', outline: 'none' }}
                     />
                     <MenuList>
                       <MenuItem icon={<FiEdit2 />} onClick={() => onEdit?.(r)}>
                         Изменить
                       </MenuItem>
-                      <MenuItem
-                        icon={<FiTrash2 />}
-                        color="red.500"
-                        onClick={() => onDelete?.(r)}
-                      >
+                      <MenuItem icon={<FiTrash2 />} color="red.500" onClick={() => onDelete?.(r)}>
                         Удалить
                       </MenuItem>
                     </MenuList>
@@ -234,7 +230,7 @@ export default function PaymentsTable({ onEdit, onDelete }: Props) {
                 <Text fontWeight="semibold">Итого</Text>
               </Td>
               <Td borderColor={border} isNumeric fontWeight="semibold">
-                {total.toLocaleString("ru-RU")} ₽
+                {total.toLocaleString('ru-RU')} ₽
               </Td>
               <Td borderColor={border} w="48px"></Td>
             </Tr>

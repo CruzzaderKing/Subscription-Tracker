@@ -1,30 +1,30 @@
+import type { BoxProps } from '@chakra-ui/react';
 import {
+  Avatar,
   Box,
   Flex,
-  Text,
-  useColorModeValue,
-  Avatar,
-  Spacer,
   IconButton,
   Menu,
   MenuButton,
-  MenuList,
   MenuItem,
-} from "@chakra-ui/react";
-import type { BoxProps } from "@chakra-ui/react";
-import { FiMoreVertical, FiLogOut } from "react-icons/fi";
-import { NavMenu } from "./IconList";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { selectActiveTab, setActiveTab } from "../store/uiSlice";
-import { useAuth } from "../auth/AuthProvider";
-import { useNavigate } from "react-router-dom";
+  MenuList,
+  Spacer,
+  Text,
+  useColorModeValue,
+} from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
+import { FiLogOut, FiMoreVertical } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
-import { useEffect, useState } from "react";
-import { listenUserProfile, type UserProfile } from "../lib/db/users";
+import { useAuth } from '../auth/AuthProvider';
+import { listenUserProfile, type UserProfile } from '../lib/db/users';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { selectActiveTab, setActiveTab } from '../store/uiSlice';
+import { NavMenu } from './IconList';
 
 export default function SidebarContent(props: BoxProps) {
-  const bg = useColorModeValue("white", "gray.800");
-  const border = useColorModeValue("gray.200", "gray.700");
+  const bg = useColorModeValue('white', 'gray.800');
+  const border = useColorModeValue('gray.200', 'gray.700');
   const activeKey = useAppSelector(selectActiveTab);
   const dispatch = useAppDispatch();
 
@@ -41,16 +41,16 @@ export default function SidebarContent(props: BoxProps) {
   const displayName =
     profile?.displayName ||
     user?.displayName ||
-    (user?.email ? user.email.split("@")[0] : "Пользователь");
+    (user?.email ? user.email.split('@')[0] : 'Пользователь');
 
-  const email = profile?.email || user?.email || "";
+  const email = profile?.email || user?.email || '';
 
   const avatarSrc = profile?.avatarUrl || user?.photoURL || undefined;
 
   const handleLogout = async () => {
     try {
       await logout();
-      navigate("/auth/register", { replace: true });
+      navigate('/auth/register', { replace: true });
     } catch (e) {
       console.error(e);
     }
@@ -65,20 +65,8 @@ export default function SidebarContent(props: BoxProps) {
       h="100vh"
       {...props}
     >
-      <Flex
-        align="center"
-        gap={3}
-        p={5}
-        w="full"
-        borderBottomWidth="1px"
-        borderColor={border}
-      >
-        <Avatar
-          size="lg"
-          name="Трекер подписок и платежей"
-          bg="black"
-          color="white"
-        />
+      <Flex align="center" gap={3} p={5} w="full" borderBottomWidth="1px" borderColor={border}>
+        <Avatar size="lg" name="Трекер подписок и платежей" bg="black" color="white" />
         <Box>
           <Text as="h2" textStyle="h2">
             Трекер подписок и платежей
@@ -89,10 +77,7 @@ export default function SidebarContent(props: BoxProps) {
         </Box>
       </Flex>
 
-      <NavMenu
-        activeKey={activeKey}
-        onChange={(k) => dispatch(setActiveTab(k))}
-      />
+      <NavMenu activeKey={activeKey} onChange={(k) => dispatch(setActiveTab(k))} />
 
       <Spacer />
 
@@ -105,13 +90,7 @@ export default function SidebarContent(props: BoxProps) {
         borderColor={border}
       >
         <Flex align="center" gap={3}>
-          <Avatar
-            size="lg"
-            name={displayName}
-            src={avatarSrc}
-            bg="black"
-            color="white"
-          />
+          <Avatar size="lg" name={displayName} src={avatarSrc} bg="black" color="white" />
           <Box>
             <Text as="h2" textStyle="h2">
               {displayName}

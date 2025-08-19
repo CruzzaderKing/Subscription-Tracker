@@ -1,11 +1,11 @@
 // src/pages/auth/Register.tsx
-import { useState } from "react";
+import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import {
   Avatar,
   Box,
-  Flex,
   Button,
   Container,
+  Flex,
   FormControl,
   FormLabel,
   Input,
@@ -13,24 +13,20 @@ import {
   InputRightElement,
   Text,
   useToast,
-} from "@chakra-ui/react";
-import { ViewIcon, ViewOffIcon } from "@chakra-ui/icons";
-import { FcGoogle } from "react-icons/fc";
-import {
-  signInWithPopup,
-  signInWithRedirect,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+} from '@chakra-ui/react';
+import { createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect } from 'firebase/auth';
+import { useState } from 'react';
+import { FcGoogle } from 'react-icons/fc';
+import { useNavigate } from 'react-router-dom';
 
-import { auth, googleProvider } from "../../lib/firebase";
-import { useAppDispatch } from "../../store/hooks";
-import { setActiveTab } from "../../store/uiSlice";
+import { auth, googleProvider } from '../../lib/firebase';
+import { useAppDispatch } from '../../store/hooks';
+import { setActiveTab } from '../../store/uiSlice';
 
 export default function RegisterPage() {
   const [show, setShow] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -39,8 +35,8 @@ export default function RegisterPage() {
   const dispatch = useAppDispatch();
 
   const goToSubs = () => {
-    dispatch(setActiveTab("subs"));
-    navigate("/", { replace: true });
+    dispatch(setActiveTab('subs'));
+    navigate('/', { replace: true });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,9 +44,9 @@ export default function RegisterPage() {
 
     if (!email.trim() || password.length < 6) {
       toast({
-        title: "Проверьте данные",
-        description: "Введите email и пароль не короче 6 символов.",
-        status: "warning",
+        title: 'Проверьте данные',
+        description: 'Введите email и пароль не короче 6 символов.',
+        status: 'warning',
       });
       return;
     }
@@ -58,13 +54,13 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     try {
       await createUserWithEmailAndPassword(auth, email.trim(), password);
-      toast({ title: "Регистрация успешна", status: "success" });
+      toast({ title: 'Регистрация успешна', status: 'success' });
       goToSubs();
     } catch (err: any) {
       toast({
-        title: "Ошибка регистрации",
-        description: err?.message ?? "Попробуйте ещё раз",
-        status: "error",
+        title: 'Ошибка регистрации',
+        description: err?.message ?? 'Попробуйте ещё раз',
+        status: 'error',
       });
     } finally {
       setIsSubmitting(false);
@@ -75,10 +71,7 @@ export default function RegisterPage() {
     try {
       setLoadingGoogle(true);
       await signInWithPopup(auth, googleProvider).catch(async (err: any) => {
-        if (
-          err?.code === "auth/popup-blocked" ||
-          err?.code === "auth/popup-closed-by-user"
-        ) {
+        if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/popup-closed-by-user') {
           await signInWithRedirect(auth, googleProvider);
         } else {
           throw err;
@@ -87,9 +80,9 @@ export default function RegisterPage() {
       goToSubs();
     } catch (err: any) {
       toast({
-        title: "Ошибка входа Google",
-        description: err?.message ?? "Попробуйте ещё раз",
-        status: "error",
+        title: 'Ошибка входа Google',
+        description: err?.message ?? 'Попробуйте ещё раз',
+        status: 'error',
       });
     } finally {
       setLoadingGoogle(false);
@@ -110,27 +103,15 @@ export default function RegisterPage() {
           as="form"
           onSubmit={handleSubmit}
           w="full"
-          maxW={{ base: "100%" }}
+          maxW={{ base: '100%' }}
           mx="auto"
           borderWidth="1px"
           borderRadius="xl"
           p={{ base: 5 }}
           bg="chakra-body-bg"
         >
-          <Flex
-            direction="column"
-            gap={4}
-            align="center"
-            justify="center"
-            w="100%"
-          >
-            <Flex
-              direction="column"
-              gap={1}
-              align="center"
-              justify="center"
-              w="100%"
-            >
+          <Flex direction="column" gap={4} align="center" justify="center" w="100%">
+            <Flex direction="column" gap={1} align="center" justify="center" w="100%">
               <Avatar size="lg" name="Т" bg="black" color="white" />
               <Text as="h3" textStyle="h3">
                 Трекер подписок и платежей
@@ -141,23 +122,13 @@ export default function RegisterPage() {
               <Text as="h1" textStyle="h1" textAlign="center">
                 Регистрация
               </Text>
-              <Text
-                color="text.muted"
-                textAlign="center"
-                fontSize={{ base: "sm", md: "md" }}
-              >
+              <Text color="text.muted" textAlign="center" fontSize={{ base: 'sm', md: 'md' }}>
                 Зарегистрируйтесь, чтобы начать работать
                 <br /> в приложении
               </Text>
             </Flex>
 
-            <Flex
-              direction="column"
-              gap={4}
-              align="center"
-              justify="center"
-              w="100%"
-            >
+            <Flex direction="column" gap={4} align="center" justify="center" w="100%">
               <FormControl isRequired>
                 <FormLabel>Email</FormLabel>
                 <Input
@@ -174,7 +145,7 @@ export default function RegisterPage() {
                 <FormLabel>Пароль</FormLabel>
                 <InputGroup>
                   <Input
-                    type={show ? "text" : "password"}
+                    type={show ? 'text' : 'password'}
                     placeholder="Минимум 6 символов"
                     autoComplete="new-password"
                     value={password}
@@ -185,7 +156,7 @@ export default function RegisterPage() {
                       onClick={() => setShow((s) => !s)}
                       variant="ghost"
                       size="sm"
-                      aria-label={show ? "Скрыть пароль" : "Показать пароль"}
+                      aria-label={show ? 'Скрыть пароль' : 'Показать пароль'}
                     >
                       {show ? <ViewOffIcon /> : <ViewIcon />}
                     </Button>
@@ -194,18 +165,12 @@ export default function RegisterPage() {
               </FormControl>
             </Flex>
 
-            <Flex
-              direction="column"
-              gap={2}
-              align="center"
-              justify="center"
-              w="100%"
-            >
+            <Flex direction="column" gap={2} align="center" justify="center" w="100%">
               <Button
                 type="submit"
                 w="full"
                 bg="black"
-                _hover={{ bg: "blackAlpha.800" }}
+                _hover={{ bg: 'blackAlpha.800' }}
                 color="white"
                 isLoading={isSubmitting}
               >
@@ -223,12 +188,8 @@ export default function RegisterPage() {
               </Button>
             </Flex>
 
-            <Text
-              textAlign="center"
-              color="text.muted"
-              fontSize={{ base: "sm", md: "md" }}
-            >
-              Уже есть аккаунт?{" "}
+            <Text textAlign="center" color="text.muted" fontSize={{ base: 'sm', md: 'md' }}>
+              Уже есть аккаунт?{' '}
               <Button as="a" href="/#/auth/login" variant="link">
                 Войти
               </Button>

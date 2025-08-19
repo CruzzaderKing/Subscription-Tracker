@@ -1,5 +1,6 @@
-import { doc, onSnapshot } from "firebase/firestore";
-import { db } from "../firebase";
+import { doc, onSnapshot } from 'firebase/firestore';
+
+import { db } from '../firebase';
 
 export type UserProfile = {
   displayName?: string;
@@ -9,11 +10,8 @@ export type UserProfile = {
   updatedAt?: unknown;
 };
 
-export function listenUserProfile(
-  uid: string,
-  cb: (profile: UserProfile | null) => void
-) {
-  const ref = doc(db, "users", uid);
+export function listenUserProfile(uid: string, cb: (profile: UserProfile | null) => void) {
+  const ref = doc(db, 'users', uid);
   return onSnapshot(ref, (snap) => {
     cb(snap.exists() ? (snap.data() as UserProfile) : null);
   });

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Box,
   Button,
@@ -9,18 +8,16 @@ import {
   Stack,
   Text,
   useToast,
-} from "@chakra-ui/react";
-import {
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signInWithRedirect,
-} from "firebase/auth";
-import { auth, googleProvider } from "../../lib/firebase";
-import { FcGoogle } from "react-icons/fc";
+} from '@chakra-ui/react';
+import { signInWithEmailAndPassword, signInWithPopup, signInWithRedirect } from 'firebase/auth';
+import { useState } from 'react';
+import { FcGoogle } from 'react-icons/fc';
+
+import { auth, googleProvider } from '../../lib/firebase';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const toast = useToast();
 
@@ -29,12 +26,12 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      window.location.assign("/");
+      window.location.assign('/');
     } catch (err: any) {
       toast({
-        title: "Не удалось войти",
+        title: 'Не удалось войти',
         description: err?.message,
-        status: "error",
+        status: 'error',
       });
     } finally {
       setLoading(false);
@@ -44,53 +41,33 @@ export default function LoginPage() {
   const signInGoogle = async () => {
     try {
       await signInWithPopup(auth, googleProvider).catch(async (err: any) => {
-        if (
-          err?.code === "auth/popup-blocked" ||
-          err?.code === "auth/popup-closed-by-user"
-        ) {
+        if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/popup-closed-by-user') {
           await signInWithRedirect(auth, googleProvider);
         } else {
           throw err;
         }
       });
-      window.location.assign("/");
+      window.location.assign('/');
     } catch (err: any) {
       toast({
-        title: "Ошибка входа Google",
+        title: 'Ошибка входа Google',
         description: err?.message,
-        status: "error",
+        status: 'error',
       });
     }
   };
 
   return (
-    <Box
-      minH="100dvh"
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      p={6}
-    >
+    <Box minH="100dvh" display="flex" alignItems="center" justifyContent="center" p={6}>
       <Container maxW="sm">
-        <Box
-          as="form"
-          onSubmit={onSubmit}
-          borderWidth="1px"
-          rounded="xl"
-          p={6}
-          bg="chakra-body-bg"
-        >
+        <Box as="form" onSubmit={onSubmit} borderWidth="1px" rounded="xl" p={6} bg="chakra-body-bg">
           <Stack spacing={4}>
             <Text as="h1" fontSize="2xl" fontWeight="bold" textAlign="center">
               Войти
             </Text>
             <FormControl isRequired>
               <FormLabel>Email</FormLabel>
-              <Input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </FormControl>
             <FormControl isRequired>
               <FormLabel>Пароль</FormLabel>
@@ -101,17 +78,13 @@ export default function LoginPage() {
               />
             </FormControl>
             <Button type="submit" isLoading={loading} bg="black" color="white">
-              Войти{" "}
+              Войти{' '}
             </Button>
-            <Button
-              onClick={signInGoogle}
-              leftIcon={<FcGoogle />}
-              variant="outline"
-            >
+            <Button onClick={signInGoogle} leftIcon={<FcGoogle />} variant="outline">
               Войти с Google
             </Button>
             <Text textAlign="center">
-              Нет аккаунта?{" "}
+              Нет аккаунта?{' '}
               <Button as="a" href="/#/auth/register" variant="link">
                 Зарегистрироваться
               </Button>

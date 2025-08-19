@@ -1,12 +1,13 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import type { TabKey } from "../types/ui";
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+
+import type { TabKey } from '../types/ui';
 
 type UiState = { activeTab: TabKey };
 
-const initialState: UiState = { activeTab: "subs" };
+const initialState: UiState = { activeTab: 'subs' };
 
 const uiSlice = createSlice({
-  name: "ui",
+  name: 'ui',
   initialState,
   reducers: {
     setActiveTab(state, action: PayloadAction<TabKey>) {
