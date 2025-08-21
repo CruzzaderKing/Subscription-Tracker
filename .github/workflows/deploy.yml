@@ -2,7 +2,11 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ backup-raw-to-firestore ]  
+    branches: [ backup-raw-to-firestore ]
+
+
+permissions:
+  contents: write
 
 jobs:
   deploy:
