@@ -9,11 +9,25 @@ import {
   Text,
   useToast,
 } from '@chakra-ui/react';
-import { signInWithEmailAndPassword, signInWithPopup, signInWithRedirect } from 'firebase/auth';
+import {
+  type AuthError,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signInWithRedirect,
+} from 'firebase/auth';
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 
 import { auth, googleProvider } from '../../lib/firebase';
+
+// Утилита для безопасного извлечения сообщения об ошибке
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return (error as { message?: string }).message ?? 'Неизвестная ошибка';
+  }
+  return String(error);
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -27,10 +41,11 @@ export default function LoginPage() {
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
       window.location.assign('/');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      // Теперь err — unknown, безопасно обрабатываем
       toast({
         title: 'Не удалось войти',
-        description: err?.message,
+        description: getErrorMessage(err),
         status: 'error',
       });
     } finally {
@@ -40,20 +55,21 @@ export default function LoginPage() {
 
   const signInGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider).catch(async (err: any) => {
-        if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/popup-closed-by-user') {
-          await signInWithRedirect(auth, googleProvider);
-        } else {
-          throw err;
-        }
-      });
+      await signInWithPopup(auth, googleProvider);
       window.location.assign('/');
-    } catch (err: any) {
-      toast({
-        title: 'Ошибка входа Google',
-        description: err?.message,
-        status: 'error',
-      });
+    } catch (err: unknown) {
+      const error = err as AuthError; // Приведение к типу AuthError из Firebase
+
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+        // Если попап заблокирован или закрыт — используем редирект
+        await signInWithRedirect(auth, googleProvider);
+      } else {
+        toast({
+          title: 'Ошибка входа через Google',
+          description: error.message,
+          status: 'error',
+        });
+      }
     }
   };
 
@@ -78,7 +94,7 @@ export default function LoginPage() {
               />
             </FormControl>
             <Button type="submit" isLoading={loading} bg="black" color="white">
-              Войти{' '}
+              Войти
             </Button>
             <Button onClick={signInGoogle} leftIcon={<FcGoogle />} variant="outline">
               Войти с Google

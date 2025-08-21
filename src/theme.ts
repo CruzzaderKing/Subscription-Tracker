@@ -1,8 +1,8 @@
 // src/theme.ts
-import { extendTheme } from '@chakra-ui/react';
-import { mode } from '@chakra-ui/theme-tools';
+import { extendTheme, type ThemeOverride } from '@chakra-ui/react';
+import { mode, type StyleFunctionProps } from '@chakra-ui/theme-tools';
 
-export const theme = extendTheme({
+export const theme: ThemeOverride = extendTheme({
   fontSizes: {
     '2xs': '0.625rem',
   },
@@ -41,7 +41,11 @@ export const theme = extendTheme({
   },
 
   styles: {
-    global: {
+    global: (props: Record<string, unknown>) => ({
+      body: {
+        bg: mode('white', 'gray.900')(props),
+        color: mode('gray.800', 'whiteAlpha.900')(props),
+      },
       '.h1': {
         fontWeight: 700,
         lineHeight: '1.3',
@@ -72,13 +76,13 @@ export const theme = extendTheme({
         lineHeight: '1.2',
         fontSize: { base: '2xs', md: 'sm', lg: 'sm' },
       },
-    },
+    }),
   },
 
   components: {
     Table: {
       variants: {
-        unifiedFlat: (props: any) => {
+        unifiedFlat: (props: StyleFunctionProps) => {
           const border = mode('gray.200', 'gray.700')(props);
           const hover = mode('gray.50', 'gray.800')(props);
 
@@ -116,10 +120,12 @@ export const theme = extendTheme({
     },
 
     Badge: {
-      baseStyle: (props: any) => ({
+      baseStyle: (props: StyleFunctionProps) => ({
         ...(props.theme.textStyles?.['caption-1'] ?? {}),
         textTransform: 'none',
       }),
     },
   },
 });
+
+export default theme;

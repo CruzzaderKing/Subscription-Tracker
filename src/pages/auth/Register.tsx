@@ -14,7 +14,12 @@ import {
   Text,
   useToast,
 } from '@chakra-ui/react';
-import { createUserWithEmailAndPassword, signInWithPopup, signInWithRedirect } from 'firebase/auth';
+import {
+  type AuthError,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  signInWithRedirect,
+} from 'firebase/auth';
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +27,15 @@ import { useNavigate } from 'react-router-dom';
 import { auth, googleProvider } from '../../lib/firebase';
 import { useAppDispatch } from '../../store/hooks';
 import { setActiveTab } from '../../store/uiSlice';
+
+// Утилита для безопасного получения сообщения об ошибке
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'object' && error !== null && 'message' in error) {
+    return (error as { message?: string }).message ?? 'Неизвестная ошибка';
+  }
+  return String(error);
+}
 
 export default function RegisterPage() {
   const [show, setShow] = useState(false);
@@ -56,10 +70,10 @@ export default function RegisterPage() {
       await createUserWithEmailAndPassword(auth, email.trim(), password);
       toast({ title: 'Регистрация успешна', status: 'success' });
       goToSubs();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast({
         title: 'Ошибка регистрации',
-        description: err?.message ?? 'Попробуйте ещё раз',
+        description: getErrorMessage(err),
         status: 'error',
       });
     } finally {
@@ -70,20 +84,20 @@ export default function RegisterPage() {
   const signInWithGoogle = async () => {
     try {
       setLoadingGoogle(true);
-      await signInWithPopup(auth, googleProvider).catch(async (err: any) => {
-        if (err?.code === 'auth/popup-blocked' || err?.code === 'auth/popup-closed-by-user') {
-          await signInWithRedirect(auth, googleProvider);
-        } else {
-          throw err;
-        }
-      });
+      await signInWithPopup(auth, googleProvider);
       goToSubs();
-    } catch (err: any) {
-      toast({
-        title: 'Ошибка входа Google',
-        description: err?.message ?? 'Попробуйте ещё раз',
-        status: 'error',
-      });
+    } catch (err: unknown) {
+      const error = err as AuthError;
+
+      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+        await signInWithRedirect(auth, googleProvider);
+      } else {
+        toast({
+          title: 'Ошибка входа через Google',
+          description: error.message,
+          status: 'error',
+        });
+      }
     } finally {
       setLoadingGoogle(false);
     }

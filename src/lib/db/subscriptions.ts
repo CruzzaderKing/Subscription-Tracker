@@ -30,37 +30,15 @@ export async function createSubscription(uid: string, data: Omit<Subscription, '
   await addDoc(subsCol(uid), data);
 }
 
-export async function updateSubscription(uid: string, id: string, patch: Partial<Subscription>) {
-  await updateDoc(doc(db, 'users', uid, 'subscriptions', id), patch as any);
+export async function updateSubscription(
+  uid: string,
+  id: string,
+  patch: Partial<Omit<Subscription, 'id'>>,
+) {
+  const subscriptionDocRef = doc(db, 'users', uid, 'subscriptions', id);
+  await updateDoc(subscriptionDocRef, patch);
 }
 
 export async function deleteSubscription(uid: string, id: string) {
   await deleteDoc(doc(db, 'users', uid, 'subscriptions', id));
-}
-
-export async function seedSubscriptions(uid: string) {
-  const demo: Omit<Subscription, 'id'>[] = [
-    {
-      name: 'Netflix (Premium)',
-      status: 'Активна',
-      cycle: 'Ежемесячно',
-      startDate: '15 сен 2025 г.',
-      amount: 1199,
-    },
-    {
-      name: 'Яндекс Плюс',
-      status: 'Активна',
-      cycle: 'Ежемесячно',
-      startDate: '1 окт 2025 г.',
-      amount: 299,
-    },
-    {
-      name: 'Adobe CC',
-      status: 'Отменена',
-      cycle: 'Ежемесячно',
-      startDate: '--------------',
-      amount: 5290,
-    },
-  ];
-  for (const item of demo) await addDoc(subsCol(uid), item);
 }

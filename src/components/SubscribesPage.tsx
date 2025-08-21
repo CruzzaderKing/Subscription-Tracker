@@ -79,11 +79,6 @@ export default function SubscriptionsTable() {
 
   const total = useMemo(() => items.reduce((s, x) => s + (Number(x.amount) || 0), 0), [items]);
 
-  const openEdit = (row: Subscription) => {
-    setEditing({ ...row });
-    modal.onOpen();
-  };
-
   const remove = async (id: string) => {
     try {
       await deleteSubscription(uid, id);

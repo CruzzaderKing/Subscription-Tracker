@@ -22,7 +22,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useAuth } from '../../auth/AuthProvider';
-import { deleteSubscription, updateSubscription } from '../../lib/db/subscriptions';
+import { updateSubscription } from '../../lib/db/subscriptions';
 import { db } from '../../lib/firebase';
 import { useAppDispatch } from '../../store/hooks';
 import { setActiveTab } from '../../store/uiSlice';
@@ -94,19 +94,6 @@ export default function SubscriptionEditPage() {
       toast({ title: 'Ошибка сохранения', description: msg, status: 'error' });
     } finally {
       setSaving(false);
-    }
-  };
-
-  const onDelete = async () => {
-    if (!uid || !id) return;
-    try {
-      await deleteSubscription(uid, id);
-      toast({ title: 'Подписка удалена', status: 'info' });
-      dispatch(setActiveTab('subs'));
-      navigate('/', { replace: true });
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      toast({ title: 'Ошибка удаления', description: msg, status: 'error' });
     }
   };
 
