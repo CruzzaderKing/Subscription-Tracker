@@ -1,17 +1,11 @@
 // src/App.tsx
 import { HashRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 
-import { useAuth } from './auth/AuthProvider';
 import { RequireAuth } from './auth/RequireAuth';
-import LoginPage from './pages/auth/Login';
 import RegisterPage from './pages/auth/Register';
 import MainContent from './pages/main/MainContent';
-
-function PublicOnly({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
-  if (loading) return null;
-  return user ? <Navigate to="/" replace /> : <>{children}</>;
-}
+import SubscriptionEditPage from './pages/subscriptions/SubscriptionEditPage'; // /subs/:id
+import SubscriptionFormPage from './pages/subscriptions/SubscriptionFormPage'; // /subs/new
 
 export default function App() {
   return (
@@ -26,21 +20,22 @@ export default function App() {
           }
         />
         <Route
-          path="/auth/register"
+          path="/subs/new"
           element={
-            <PublicOnly>
-              <RegisterPage />
-            </PublicOnly>
+            <RequireAuth>
+              <SubscriptionFormPage />
+            </RequireAuth>
           }
         />
         <Route
-          path="/auth/login"
+          path="/subs/:id"
           element={
-            <PublicOnly>
-              <LoginPage />
-            </PublicOnly>
+            <RequireAuth>
+              <SubscriptionEditPage />
+            </RequireAuth>
           }
         />
+        <Route path="/auth/register" element={<RegisterPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>

@@ -1,11 +1,6 @@
 // src/components/PaymentsTable.tsx
 import {
   Box,
-  IconButton,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
   Table,
   TableContainer,
   Tbody,
@@ -17,7 +12,6 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { useEffect, useMemo, useState } from 'react';
-import { FiEdit2, FiMoreVertical, FiTrash2 } from 'react-icons/fi';
 
 import { useAuth } from '../auth/AuthProvider';
 import { listenSubscriptions } from '../lib/db/subscriptions';
@@ -26,15 +20,14 @@ import type { Subscription } from '../types/subscription';
 export type PaymentRow = {
   id: string;
   name: string;
-  date: string;
+  date: string; // ближайшая дата списания
+  period: string; // месяц и год ближайшего списания
   amount: number;
 };
 
-type Props = {
-  onEdit?: (row: PaymentRow) => void;
-  onDelete?: (row: PaymentRow) => void;
-};
+type Props = Record<string, never>;
 
+// для парсинга дат вида "15 сен 2025 г." и ISO "YYYY-MM-DD"
 const RU_MONTHS: Record<string, number> = {
   янв: 0,
   фев: 1,
@@ -52,12 +45,10 @@ const RU_MONTHS: Record<string, number> = {
 
 function tryParseRuDate(s: string): Date | null {
   if (!s) return null;
-
   const std = new Date(s);
   if (!Number.isNaN(std.getTime())) return std;
 
   const parts = s.replace('г.', '').replace('г', '').trim().split(/\s+/);
-
   if (parts.length >= 3) {
     const d = parseInt(parts[0], 10);
     const m3 = parts[1].slice(0, 3).toLowerCase();
@@ -75,15 +66,17 @@ function daysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
 }
 
-function formatRu(d: Date | null): string {
+function formatDateRu(d: Date | null): string {
   if (!d) return '—';
-  return d.toLocaleDateString('ru-RU', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
+  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function formatMonthYearRu(d: Date | null): string {
+  if (!d) return '—';
+  return d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+}
+
+// ближайшая дата списания исходя из даты начала и цикла
 function nextChargeDate(startDate: string, cycle: string): Date | null {
   const start = tryParseRuDate(startDate);
   if (!start) return null;
@@ -98,7 +91,6 @@ function nextChargeDate(startDate: string, cycle: string): Date | null {
     let m = today.getMonth();
     let d = Math.min(day, daysInMonth(y, m));
     let candidate = new Date(y, m, d);
-
     if (candidate < today) {
       m += 1;
       if (m > 11) {
@@ -116,7 +108,6 @@ function nextChargeDate(startDate: string, cycle: string): Date | null {
     let y = today.getFullYear();
     let d = Math.min(day, daysInMonth(y, month));
     let candidate = new Date(y, month, d);
-
     if (candidate < today) {
       y += 1;
       d = Math.min(day, daysInMonth(y, month));
@@ -128,7 +119,7 @@ function nextChargeDate(startDate: string, cycle: string): Date | null {
   return start;
 }
 
-export default function PaymentsTable({ onEdit, onDelete }: Props) {
+export default function PaymentsTable(_props: Props) {
   const border = useColorModeValue('gray.200', 'gray.700');
   const headBg = useColorModeValue('gray.50', 'gray.700');
   const rowHover = useColorModeValue('gray.50', 'gray.800');
@@ -144,26 +135,41 @@ export default function PaymentsTable({ onEdit, onDelete }: Props) {
   }, [uid]);
 
   const rows: PaymentRow[] = useMemo(() => {
-    const withDates = subs
-
+    return subs
       .filter((s) => s.status !== 'Отменена')
       .map((s) => {
         const d = nextChargeDate(s.startDate, s.cycle);
         return {
           id: s.id,
           name: s.name,
-          date: formatRu(d),
-          amount: s.amount,
+          date: formatDateRu(d),
+          period: formatMonthYearRu(d),
+          amount: Number(s.amount) || 0,
           _ts: d ? d.getTime() : Number.POSITIVE_INFINITY,
         } as PaymentRow & { _ts: number };
       })
       .sort((a, b) => a._ts - b._ts)
       .map(({ _ts, ...r }) => r);
-
-    return withDates;
   }, [subs]);
 
   const total = useMemo(() => rows.reduce((s, r) => s + r.amount, 0), [rows]);
+
+  if (rows.length === 0) {
+    return (
+      <Box
+        borderWidth="1px"
+        borderRadius="md"
+        p={8}
+        textAlign="center"
+        bg="white"
+        _dark={{ bg: 'gray.800' }}
+      >
+        <Text color="gray.600" _dark={{ color: 'gray.300' }}>
+          Нет ближайших платежей.
+        </Text>
+      </Box>
+    );
+  }
 
   return (
     <Box
@@ -171,6 +177,7 @@ export default function PaymentsTable({ onEdit, onDelete }: Props) {
       borderColor={border}
       borderRadius="md"
       bg="white"
+      _dark={{ bg: 'gray.800' }}
       overflow="hidden"
       mb={5}
     >
@@ -182,11 +189,11 @@ export default function PaymentsTable({ onEdit, onDelete }: Props) {
                 №
               </Th>
               <Th borderColor={border}>Название</Th>
-              <Th borderColor={border}>Ближайший платёж</Th>
+              <Th borderColor={border}>Ближайшее списание</Th>
+              <Th borderColor={border}>Период</Th>
               <Th borderColor={border} isNumeric>
                 Сумма
               </Th>
-              <Th borderColor={border} w="48px"></Th>
             </Tr>
           </Thead>
 
@@ -198,41 +205,20 @@ export default function PaymentsTable({ onEdit, onDelete }: Props) {
                 </Td>
                 <Td borderColor={border}>{r.name}</Td>
                 <Td borderColor={border}>{r.date}</Td>
+                <Td borderColor={border}>{r.period}</Td>
                 <Td borderColor={border} isNumeric>
                   {r.amount.toLocaleString('ru-RU')} ₽
-                </Td>
-                <Td borderColor={border} w="48px" textAlign="right">
-                  <Menu placement="bottom-end">
-                    <MenuButton
-                      as={IconButton}
-                      aria-label="Действия"
-                      icon={<FiMoreVertical />}
-                      variant="ghost"
-                      size="sm"
-                      _focus={{ boxShadow: 'none', outline: 'none' }}
-                      _focusVisible={{ boxShadow: 'none', outline: 'none' }}
-                    />
-                    <MenuList>
-                      <MenuItem icon={<FiEdit2 />} onClick={() => onEdit?.(r)}>
-                        Изменить
-                      </MenuItem>
-                      <MenuItem icon={<FiTrash2 />} color="red.500" onClick={() => onDelete?.(r)}>
-                        Удалить
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
                 </Td>
               </Tr>
             ))}
 
             <Tr>
-              <Td borderColor={border} colSpan={3}>
+              <Td borderColor={border} colSpan={4}>
                 <Text fontWeight="semibold">Итого</Text>
               </Td>
               <Td borderColor={border} isNumeric fontWeight="semibold">
                 {total.toLocaleString('ru-RU')} ₽
               </Td>
-              <Td borderColor={border} w="48px"></Td>
             </Tr>
           </Tbody>
         </Table>

@@ -31,10 +31,11 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { FiPlus } from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthProvider';
 import {
-  createSubscription,
   deleteSubscription,
   listenSubscriptions,
   updateSubscription,
@@ -60,6 +61,7 @@ type EditingState = Omit<Subscription, 'id'> & { id?: string };
 export default function SubscriptionsTable() {
   const { user } = useAuth();
   const uid = user?.uid ?? '';
+  const navigate = useNavigate();
 
   const [items, setItems] = useState<Subscription[]>([]);
   const [editing, setEditing] = useState<EditingState | null>(null);
@@ -77,17 +79,6 @@ export default function SubscriptionsTable() {
 
   const total = useMemo(() => items.reduce((s, x) => s + (Number(x.amount) || 0), 0), [items]);
 
-  const openCreate = () => {
-    setEditing({
-      name: '',
-      status: 'Активна',
-      cycle: 'Ежемесячно',
-      startDate: '',
-      amount: 0,
-    });
-    modal.onOpen();
-  };
-
   const openEdit = (row: Subscription) => {
     setEditing({ ...row });
     modal.onOpen();
@@ -97,46 +88,52 @@ export default function SubscriptionsTable() {
     try {
       await deleteSubscription(uid, id);
       toast({ title: 'Подписка удалена', status: 'info' });
-    } catch (e: any) {
-      toast({
-        title: 'Ошибка удаления',
-        description: e?.message,
-        status: 'error',
-      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: 'Ошибка удаления', description: message, status: 'error' });
     }
   };
 
   const save = async () => {
-    if (!editing || !uid) return;
+    if (!editing || !uid || !editing.id) return; // редактируем только существующие
     const { id, ...payload } = editing;
 
     try {
-      if (id) {
-        await updateSubscription(uid, id, payload);
-      } else {
-        await createSubscription(uid, payload);
-      }
+      await updateSubscription(uid, id, payload);
       modal.onClose();
       setEditing(null);
-      toast({ title: id ? 'Сохранено' : 'Добавлено', status: 'success' });
-    } catch (e: any) {
-      toast({
-        title: 'Ошибка сохранения',
-        description: e?.message,
-        status: 'error',
-      });
+      toast({ title: 'Сохранено', status: 'success' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      toast({ title: 'Ошибка сохранения', description: message, status: 'error' });
     }
   };
 
   return (
     <Box>
-      <Flex align="center" mb={4} gap={3}>
-        <Text fontSize="xl" fontWeight="semibold">
+      <Flex
+        direction={{ base: 'column', md: 'row' }}
+        align={{ base: 'flex-start', md: 'center' }}
+        justify="space-between"
+        gap={{ base: 3, md: 0 }}
+        mb={5}
+      >
+        <Text as="h1" textStyle="h1">
           Подписки
         </Text>
-        <Button ml="auto" colorScheme="teal" onClick={openCreate}>
-          Добавить подписку
-        </Button>
+        <HStack mt={{ base: 2, md: 0 }} w={{ base: 'full', md: 'auto' }}>
+          <Button
+            leftIcon={<FiPlus />}
+            bg="black"
+            color="white"
+            _hover={{ bg: 'blackAlpha.800' }}
+            _active={{ bg: 'blackAlpha.900' }}
+            w={{ base: 'full', md: 'auto' }}
+            onClick={() => navigate('/subs/new')}
+          >
+            Добавить подписку
+          </Button>
+        </HStack>
       </Flex>
 
       <Box borderWidth="1px" borderRadius="lg" overflow="hidden">
@@ -159,13 +156,7 @@ export default function SubscriptionsTable() {
             </Thead>
             <Tbody>
               {items.map((s, idx) => (
-                <Tr
-                  key={s.id}
-                  _hover={{
-                    bg: 'blackAlpha.50',
-                    _dark: { bg: 'whiteAlpha.100' },
-                  }}
-                >
+                <Tr key={s.id} _hover={{ bg: 'blackAlpha.50', _dark: { bg: 'whiteAlpha.100' } }}>
                   <Td>{String(idx + 1).padStart(2, '0')}</Td>
                   <Td>
                     <Text fontWeight="medium">{s.name}</Text>
@@ -184,7 +175,7 @@ export default function SubscriptionsTable() {
                         ⋮
                       </MenuButton>
                       <MenuList>
-                        <MenuItem onClick={() => openEdit(s)}>Изменить</MenuItem>
+                        <MenuItem onClick={() => navigate(`/subs/${s.id}`)}>Изменить</MenuItem>
                         <MenuItem color="red.500" onClick={() => remove(s.id!)}>
                           Удалить
                         </MenuItem>
@@ -200,18 +191,18 @@ export default function SubscriptionsTable() {
                 <Td isNumeric fontWeight="semibold">
                   {formatMoney(total)}
                 </Td>
-                <Td></Td>
+                <Td />
               </Tr>
             </Tbody>
           </Table>
         </Box>
       </Box>
 
-      {/* Модалка */}
+      {/* Модалка редактирования */}
       <Modal isOpen={modal.isOpen} onClose={modal.onClose} size="md">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>{editing?.id ? 'Изменить подписку' : 'Новая подписка'}</ModalHeader>
+          <ModalHeader>Изменить подписку</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <Stack spacing={4}>
@@ -227,12 +218,7 @@ export default function SubscriptionsTable() {
                   value={editing?.status ?? 'Активна'}
                   onChange={(e) =>
                     setEditing((p) =>
-                      p
-                        ? {
-                            ...p,
-                            status: e.target.value as Subscription['status'],
-                          }
-                        : p,
+                      p ? { ...p, status: e.target.value as Subscription['status'] } : p,
                     )
                   }
                 >
@@ -281,7 +267,11 @@ export default function SubscriptionsTable() {
             <Button variant="ghost" mr={3} onClick={modal.onClose}>
               Отмена
             </Button>
-            <Button colorScheme="teal" onClick={save} isDisabled={!editing || !editing.name.trim()}>
+            <Button
+              colorScheme="teal"
+              onClick={save}
+              isDisabled={!editing || !editing.name?.trim()}
+            >
               Сохранить
             </Button>
           </ModalFooter>

@@ -1,14 +1,23 @@
+// src/components/IconList.tsx
 import { Button, HStack, Icon, Text, useColorModeValue, VStack } from '@chakra-ui/react';
+import type { IconType } from 'react-icons';
 import { FiList, FiPieChart } from 'react-icons/fi';
 
-import type { TabKey } from '../types/ui';
-import type { NavMenuProps } from '../types/ui';
+import type { NavMenuProps, TabKey } from '../types/ui';
 
 export function NavMenu({ activeKey = 'subs', onChange }: NavMenuProps) {
   const hoverBg = useColorModeValue('gray.100', 'whiteAlpha.100');
   const activeBg = useColorModeValue('gray.200', 'whiteAlpha.200');
 
-  const Item = ({ icon, label, value }: { icon: any; label: string; value: TabKey }) => (
+  const Item = ({
+    icon,
+    label,
+    value,
+  }: {
+    icon: IconType; // ✅ вместо any
+    label: string;
+    value: TabKey;
+  }) => (
     <Button
       onClick={() => onChange?.(value)}
       justifyContent="flex-start"

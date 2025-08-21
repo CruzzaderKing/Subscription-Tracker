@@ -1,47 +1,147 @@
 // src/components/SubscriptionsDonutCard.tsx
 import { Box, Grid, HStack, Text, useToken } from '@chakra-ui/react';
+import type { ReactElement } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 
-type Slice = { name: string; amount: number; pct: number; color: string };
+import { useAuth } from '../auth/AuthProvider';
+import { listenSubscriptions } from '../lib/db/subscriptions';
+import type { Subscription } from '../types/subscription';
 
-const RAW: Slice[] = [
-  { name: 'Netflix (Premium)', amount: 1199, pct: 35.69, color: 'red.400' },
-  { name: 'Мобильная связь (МТС)', amount: 650, pct: 19.35, color: 'teal.400' },
-  {
-    name: 'PlayStation Plus Extra',
-    amount: 599.92,
-    pct: 17.86,
-    color: 'purple.500',
-  },
-  { name: 'GitHub Pro', amount: 380, pct: 11.31, color: 'pink.400' },
-  { name: 'Яндекс Плюс', amount: 299, pct: 8.9, color: 'cyan.400' },
-  { name: 'iCloud+ (200 ГБ)', amount: 149, pct: 4.43, color: 'orange.400' },
-  { name: 'Продление домена .ru', amount: 82.5, pct: 2.46, color: 'gray.500' },
-];
+// ==== Типы данных для диаграммы и тултипа ====
+type ChartDatum = {
+  name: string;
+  value: number; // процент (0..100)
+  amount: number; // руб/мес
+  pct: number; // тот же процент, просто для удобства
+  fill: string; // цвет сектора
+};
 
-const TOTAL = 2980;
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: Array<{
+    value: number; // значение dataKey (= процент)
+    payload: ChartDatum; // исходная запись
+  }>;
+};
+
+function DonutTooltip({ active, payload }: CustomTooltipProps): ReactElement | null {
+  if (!active || !payload || payload.length === 0) return null;
+  const entry = payload[0];
+  const d = entry.payload;
+  return (
+    <Box bg="white" color="black" borderWidth="1px" p={2} rounded="md" boxShadow="sm">
+      <Text fontWeight="semibold" mb={1}>
+        {d.name}
+      </Text>
+      <Text fontSize="sm">
+        {d.amount.toLocaleString('ru-RU')} ₽/мес • {d.value.toFixed(2)}%
+      </Text>
+    </Box>
+  );
+}
+
+// Годовой платёж переводим в «руб/мес»
+function toMonthlyAmount(sub: Subscription): number {
+  const raw = Number(sub.amount) || 0;
+  if (sub.cycle === 'Ежегодно') return raw / 12;
+  return raw;
+}
 
 export default function SubscriptionsDonutCard() {
-  const fills = useToken(
-    'colors',
-    RAW.map((s) => s.color),
-  );
-  const chartData = RAW.map((s, i) => ({
-    name: s.name,
-    value: s.pct,
-    amount: s.amount,
-    pct: s.pct,
-    fill: fills[i],
-  }));
+  const { user } = useAuth();
+  const uid = user?.uid ?? '';
 
-  const half = Math.ceil(RAW.length / 2);
-  const leftList = RAW.slice(0, half);
-  const rightList = RAW.slice(half);
+  const [subs, setSubs] = useState<Subscription[]>([]);
+
+  useEffect(() => {
+    if (!uid) return;
+    return listenSubscriptions(uid, setSubs);
+  }, [uid]);
+
+  // Палитра — можно расширить/поменять токены Chakra
+  const colorTokens = [
+    'teal.400',
+    'red.400',
+    'purple.500',
+    'cyan.400',
+    'orange.400',
+    'pink.400',
+    'blue.400',
+    'green.400',
+    'yellow.400',
+    'gray.500',
+  ];
+  const fills = useToken('colors', colorTokens);
+
+  // Готовим данные графика
+  const { chartData, total, leftList, rightList } = useMemo(() => {
+    // Берём только неотменённые
+    const filtered = subs.filter((s) => s.status !== 'Отменена');
+
+    // Считаем месячные суммы
+    const withMonthly = filtered.map((s) => ({
+      name: s.name,
+      monthly: toMonthlyAmount(s),
+    }));
+
+    // Сумма по всем
+    const totalAmount = withMonthly.reduce((sum, r) => sum + r.monthly, 0);
+
+    // Если нечего показывать
+    if (totalAmount <= 0) {
+      return {
+        chartData: [] as ChartDatum[],
+        total: 0,
+        leftList: [] as typeof withMonthly,
+        rightList: [] as typeof withMonthly,
+      };
+    }
+
+    // Нормализация → проценты
+    const data: ChartDatum[] = withMonthly
+      .filter((r) => r.monthly > 0)
+      .sort((a, b) => b.monthly - a.monthly)
+      .map((r, idx) => {
+        const pct = (r.monthly / totalAmount) * 100;
+        return {
+          name: r.name,
+          amount: r.monthly,
+          pct,
+          value: pct,
+          fill: fills[idx % fills.length],
+        };
+      });
+
+    const half = Math.ceil(data.length / 2);
+    const left = data.slice(0, half).map((d) => ({ name: d.name, monthly: d.amount }));
+    const right = data.slice(half).map((d) => ({ name: d.name, monthly: d.amount }));
+
+    return { chartData: data, total: totalAmount, leftList: left, rightList: right };
+  }, [subs, fills]);
+
+  // Пустое состояние
+  if (chartData.length === 0) {
+    return (
+      <Box
+        borderWidth="1px"
+        rounded="md"
+        p={5}
+        textAlign="center"
+        bg="white"
+        _dark={{ bg: 'gray.800' }}
+      >
+        <Text color="gray.600" _dark={{ color: 'gray.300' }}>
+          Недостаточно данных для диаграммы.
+        </Text>
+      </Box>
+    );
+  }
 
   return (
-    <Box bg="white" borderWidth="1px" rounded="md" p={5}>
+    <Box bg="white" borderWidth="1px" rounded="md" p={5} _dark={{ bg: 'gray.800' }}>
       <Grid templateColumns={{ base: '1fr', md: 'repeat(3, 1fr)' }} gap={6} alignItems="center">
-        {/* 1/3 — пончик */}
+        {/* 1/3 — диаграмма */}
         <Box position="relative" h="240px">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -58,17 +158,12 @@ export default function SubscriptionsDonutCard() {
                   <Cell key={d.name} fill={d.fill} />
                 ))}
               </Pie>
-              <Tooltip
-                cursor={false}
-                formatter={(val: number, _n, p: any) => {
-                  const pct = Number(val).toFixed(2) + '%';
-                  const rub = Number(p.payload.amount).toLocaleString('ru-RU') + ' ₽/мес';
-                  return [`${rub} • ${pct}`, p.payload.name];
-                }}
-              />
+
+              <Tooltip content={<DonutTooltip />} cursor={false} />
             </PieChart>
           </ResponsiveContainer>
 
+          {/* Центровая подпись */}
           <Box
             position="absolute"
             top="50%"
@@ -77,35 +172,47 @@ export default function SubscriptionsDonutCard() {
             textAlign="center"
             pointerEvents="none"
           >
-            <Text textStyle="caption-1">{TOTAL.toLocaleString('ru-RU')} ₽</Text>
+            <Text textStyle="caption-1">{Math.round(total).toLocaleString('ru-RU')} ₽</Text>
             <Text textStyle="caption-2" color="gray.500">
-              Всего
+              в месяц
             </Text>
           </Box>
         </Box>
 
+        {/* 1/3 — список слева */}
         <Box>
           {leftList.map((s) => (
             <HStack key={s.name} align="start" spacing={3} mb={3}>
-              <Box boxSize="10px" rounded="full" bg={s.color} mt="6px" />
+              <Box
+                boxSize="10px"
+                rounded="full"
+                bg={chartData.find((d) => d.name === s.name)?.fill}
+                mt="6px"
+              />
               <Box>
                 <Text textStyle="caption-1">{s.name}</Text>
-                <Text textStyle="caption-2" color="gray.600">
-                  {s.amount.toLocaleString('ru-RU')} ₽ ({s.pct.toFixed(2)}%)
+                <Text textStyle="caption-2" color="gray.600" _dark={{ color: 'gray.300' }}>
+                  {s.monthly.toLocaleString('ru-RU')} ₽/мес
                 </Text>
               </Box>
             </HStack>
           ))}
         </Box>
 
+        {/* 1/3 — список справа */}
         <Box>
           {rightList.map((s) => (
             <HStack key={s.name} align="start" spacing={3} mb={3}>
-              <Box boxSize="10px" rounded="full" bg={s.color} mt="6px" />
+              <Box
+                boxSize="10px"
+                rounded="full"
+                bg={chartData.find((d) => d.name === s.name)?.fill}
+                mt="6px"
+              />
               <Box>
                 <Text textStyle="caption-1">{s.name}</Text>
-                <Text textStyle="caption-2" color="gray.600">
-                  {s.amount.toLocaleString('ru-RU')} ₽ ({s.pct.toFixed(2)}%)
+                <Text textStyle="caption-2" color="gray.600" _dark={{ color: 'gray.300' }}>
+                  {s.monthly.toLocaleString('ru-RU')} ₽/мес
                 </Text>
               </Box>
             </HStack>
