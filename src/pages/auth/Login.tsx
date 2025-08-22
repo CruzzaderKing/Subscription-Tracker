@@ -19,8 +19,8 @@ import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 
 import { auth, googleProvider } from '../../lib/firebase';
+import { shouldUseRedirect } from '../../utils/authEnv';
 
-// Утилита для безопасного извлечения сообщения об ошибке
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (typeof error === 'object' && error !== null && 'message' in error) {
@@ -55,21 +55,19 @@ export default function LoginPage() {
 
   const signInGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
-      window.location.assign('/');
-    } catch (err: unknown) {
-      const error = err as AuthError; // Приведение к типу AuthError из Firebase
-
-      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
-        // Если попап заблокирован или закрыт — используем редирект
+      if (shouldUseRedirect()) {
         await signInWithRedirect(auth, googleProvider);
       } else {
-        toast({
-          title: 'Ошибка входа через Google',
-          description: error.message,
-          status: 'error',
-        });
+        await signInWithPopup(auth, googleProvider);
       }
+      window.location.assign('/');
+    } catch (err) {
+      const error = err as AuthError;
+      toast({
+        title: 'Ошибка входа через Google',
+        description: error.message,
+        status: 'error',
+      });
     }
   };
 

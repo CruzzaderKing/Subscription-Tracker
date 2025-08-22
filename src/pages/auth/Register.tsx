@@ -28,7 +28,6 @@ import { auth, googleProvider } from '../../lib/firebase';
 import { useAppDispatch } from '../../store/hooks';
 import { setActiveTab } from '../../store/uiSlice';
 
-// Утилита для безопасного получения сообщения об ошибке
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (typeof error === 'object' && error !== null && 'message' in error) {
