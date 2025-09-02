@@ -1,5 +1,11 @@
 // src/components/SubscriptionsTable.tsx
 import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
   Badge,
   Box,
   Button,
@@ -15,9 +21,9 @@ import {
   ModalBody,
   ModalCloseButton,
   ModalContent,
-  ModalFooter,
   ModalHeader,
   ModalOverlay,
+  ModalFooter,
   Select,
   Stack,
   Table,
@@ -30,7 +36,7 @@ import {
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 
@@ -65,6 +71,8 @@ export default function SubscriptionsTable() {
 
   const [items, setItems] = useState<Subscription[]>([]);
   const [editing, setEditing] = useState<EditingState | null>(null);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null); // ID подписки для удаления
+  const cancelRef = useRef<HTMLButtonElement>(null); // для AlertDialog
 
   const modal = useDisclosure();
   const toast = useToast();
@@ -79,18 +87,20 @@ export default function SubscriptionsTable() {
 
   const total = useMemo(() => items.reduce((s, x) => s + (Number(x.amount) || 0), 0), [items]);
 
-  const remove = async (id: string) => {
+  const handleDeleteConfirmed = async (id: string) => {
     try {
       await deleteSubscription(uid, id);
       toast({ title: 'Подписка удалена', status: 'info' });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
       toast({ title: 'Ошибка удаления', description: message, status: 'error' });
+    } finally {
+      setIsDeleting(null); // Скрываем модалку
     }
   };
 
   const save = async () => {
-    if (!editing || !uid || !editing.id) return; // редактируем только существующие
+    if (!editing || !uid || !editing.id) return;
     const { id, ...payload } = editing;
 
     try {
@@ -171,7 +181,46 @@ export default function SubscriptionsTable() {
                       </MenuButton>
                       <MenuList>
                         <MenuItem onClick={() => navigate(`/subs/${s.id}`)}>Изменить</MenuItem>
-                        <MenuItem color="red.500" onClick={() => remove(s.id!)}>
+
+                        {/* Модальное окно подтверждения удаления */}
+                        <AlertDialog
+                          isOpen={isDeleting === s.id}
+                          leastDestructiveRef={cancelRef}
+                          onClose={() => setIsDeleting(null)}
+                        >
+                          <AlertDialogOverlay>
+                            <AlertDialogContent>
+                              <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                                Удалить подписку?
+                              </AlertDialogHeader>
+
+                              <AlertDialogBody>
+                                Вы уверены, что хотите удалить <strong>{s.name}</strong>? Это
+                                действие нельзя отменить.
+                              </AlertDialogBody>
+
+                              <AlertDialogFooter>
+                                <Button ref={cancelRef} onClick={() => setIsDeleting(null)}>
+                                  Отмена
+                                </Button>
+                                <Button
+                                  colorScheme="red"
+                                  onClick={() => handleDeleteConfirmed(s.id!)}
+                                  ml={3}
+                                >
+                                  Удалить
+                                </Button>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialogOverlay>
+                        </AlertDialog>
+
+                        {/* Кнопка "Удалить" — открывает модалку */}
+                        <MenuItem
+                          color="red.500"
+                          onClick={() => setIsDeleting(s.id)}
+                          icon={<DeleteIcon />}
+                        >
                           Удалить
                         </MenuItem>
                       </MenuList>
@@ -276,6 +325,7 @@ export default function SubscriptionsTable() {
   );
 }
 
+// Вспомогательный компонент для полей формы
 function FormField({ label, children }: { label: string; children: ReactNode }) {
   return (
     <Box>
@@ -286,3 +336,6 @@ function FormField({ label, children }: { label: string; children: ReactNode }) 
     </Box>
   );
 }
+
+// Импортируем иконку удаления
+import { DeleteIcon } from '@chakra-ui/icons';

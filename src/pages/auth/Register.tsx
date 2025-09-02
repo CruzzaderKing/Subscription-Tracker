@@ -22,9 +22,10 @@ import {
 } from 'firebase/auth';
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { auth, googleProvider } from '../../lib/firebase';
+import { ensureUserProfile } from '../../lib/db/userProfile';
 import { useAppDispatch } from '../../store/hooks';
 import { setActiveTab } from '../../store/uiSlice';
 
@@ -41,6 +42,7 @@ export default function RegisterPage() {
   const [show, setShow] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loadingGoogle, setLoadingGoogle] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,24 +58,55 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email.trim() || password.length < 6) {
+    // Валидация
+    if (!email.trim()) {
       toast({
-        title: 'Проверьте данные',
-        description: 'Введите email и пароль не короче 6 символов.',
+        title: 'Введите email',
         status: 'warning',
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: 'Слишком короткий пароль',
+        description: 'Пароль должен быть не менее 6 символов',
+        status: 'warning',
+      });
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      toast({
+        title: 'Пароли не совпадают',
+        status: 'error',
       });
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await createUserWithEmailAndPassword(auth, email.trim(), password);
-      toast({ title: 'Регистрация успешна', status: 'success' });
+      // 1. Создаём пользователя
+      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
+      const user = userCredential.user;
+
+      // 2. Создаём профиль в Firestore
+      await ensureUserProfile(user);
+
+      toast({
+        title: 'Регистрация успешна',
+        status: 'success',
+      });
+
+      // 3. Переходим на главную, открывая вкладку "Подписки"
       goToSubs();
     } catch (err: unknown) {
+      const message = getErrorMessage(err);
       toast({
         title: 'Ошибка регистрации',
-        description: getErrorMessage(err),
+        description: message.includes('auth/email-already-in-use')
+          ? 'Пользователь с таким email уже существует'
+          : message,
         status: 'error',
       });
     } finally {
@@ -89,8 +122,16 @@ export default function RegisterPage() {
     } catch (err: unknown) {
       const error = err as AuthError;
 
-      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+      if (error.code === 'auth/popup-blocked') {
+        toast({
+          title: 'Всплывающее окно заблокировано',
+          description: 'Разрешите всплывающие окна и попробуйте снова',
+          status: 'warning',
+        });
         await signInWithRedirect(auth, googleProvider);
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        // Пользователь закрыл окно — просто выходим
+        return;
       } else {
         toast({
           title: 'Ошибка входа через Google',
@@ -177,6 +218,29 @@ export default function RegisterPage() {
                   </InputRightElement>
                 </InputGroup>
               </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel>Подтвердите пароль</FormLabel>
+                <InputGroup>
+                  <Input
+                    type={show ? 'text' : 'password'}
+                    placeholder="Повторите пароль"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                  <InputRightElement>
+                    <Button
+                      onClick={() => setShow((s) => !s)}
+                      variant="ghost"
+                      size="sm"
+                      aria-label={show ? 'Скрыть пароль' : 'Показать пароль'}
+                    >
+                      {show ? <ViewOffIcon /> : <ViewIcon />}
+                    </Button>
+                  </InputRightElement>
+                </InputGroup>
+              </FormControl>
             </Flex>
 
             <Flex direction="column" gap={2} align="center" justify="center" w="100%">
@@ -204,7 +268,7 @@ export default function RegisterPage() {
 
             <Text textAlign="center" color="text.muted" fontSize={{ base: 'sm', md: 'md' }}>
               Уже есть аккаунт?{' '}
-              <Button as="a" href="/#/auth/login" variant="link">
+              <Button as={Link} to="/auth/login" variant="link">
                 Войти
               </Button>
             </Text>
