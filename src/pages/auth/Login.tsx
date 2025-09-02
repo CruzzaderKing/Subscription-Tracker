@@ -17,10 +17,11 @@ import {
 } from 'firebase/auth';
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
+import { Link, useNavigate } from 'react-router-dom'; // ← Добавлен useNavigate
 
 import { auth, googleProvider } from '../../lib/firebase';
 
-// Утилита для безопасного извлечения сообщения об ошибке
+// Универсальная функция для извлечения сообщения об ошибке
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (typeof error === 'object' && error !== null && 'message' in error) {
@@ -34,19 +35,28 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+  const navigate = useNavigate(); // ← Навигация без перезагрузки
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      window.location.assign('/');
+      toast({
+        title: 'Успешный вход',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      navigate('/'); // ← Без перезагрузки
     } catch (err: unknown) {
-      // Теперь err — unknown, безопасно обрабатываем
+      const message = getErrorMessage(err);
       toast({
         title: 'Не удалось войти',
-        description: getErrorMessage(err),
+        description: message,
         status: 'error',
+        duration: 5000,
+        isClosable: true,
       });
     } finally {
       setLoading(false);
@@ -54,15 +64,29 @@ export default function LoginPage() {
   };
 
   const signInGoogle = async () => {
+    setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
-      window.location.assign('/');
+      toast({
+        title: 'Вход через Google',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      navigate('/');
     } catch (err: unknown) {
-      const error = err as AuthError; // Приведение к типу AuthError из Firebase
+      const error = err as AuthError;
 
-      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
-        // Если попап заблокирован или закрыт — используем редирект
+      if (error.code === 'auth/popup-blocked') {
+        toast({
+          title: 'Всплывающее окно заблокировано',
+          description: 'Разрешите всплывающие окна и попробуйте снова',
+          status: 'warning',
+        });
         await signInWithRedirect(auth, googleProvider);
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        // Пользователь закрыл окно — просто выходим молча
+        return;
       } else {
         toast({
           title: 'Ошибка входа через Google',
@@ -70,40 +94,68 @@ export default function LoginPage() {
           status: 'error',
         });
       }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <Box minH="100dvh" display="flex" alignItems="center" justifyContent="center" p={6}>
       <Container maxW="sm">
-        <Box as="form" onSubmit={onSubmit} borderWidth="1px" rounded="xl" p={6} bg="chakra-body-bg">
+        <Box
+          as="form"
+          onSubmit={onSubmit}
+          borderWidth="1px"
+          rounded="xl"
+          p={6}
+          bg="chakra-body-bg"
+          shadow="sm"
+        >
           <Stack spacing={4}>
             <Text as="h1" fontSize="2xl" fontWeight="bold" textAlign="center">
               Войти
             </Text>
+
             <FormControl isRequired>
               <FormLabel>Email</FormLabel>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="email@example.com"
+                autoFocus
+              />
             </FormControl>
+
             <FormControl isRequired>
               <FormLabel>Пароль</FormLabel>
               <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
               />
             </FormControl>
-            <Button type="submit" isLoading={loading} bg="black" color="white">
+
+            <Button type="submit" isLoading={loading} bg="black" color="white" size="lg">
               Войти
             </Button>
-            <Button onClick={signInGoogle} leftIcon={<FcGoogle />} variant="outline">
+
+            <Button
+              onClick={signInGoogle}
+              leftIcon={<FcGoogle />}
+              variant="outline"
+              size="lg"
+              isLoading={loading}
+            >
               Войти с Google
             </Button>
-            <Text textAlign="center">
+
+            <Text textAlign="center" fontSize="sm" color="gray.600">
               Нет аккаунта?{' '}
-              <Button as="a" href="/#/auth/register" variant="link">
+              <Link to="/auth/register" style={{ color: 'blue' }}>
                 Зарегистрироваться
-              </Button>
+              </Link>
             </Text>
           </Stack>
         </Box>

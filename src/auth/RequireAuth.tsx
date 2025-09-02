@@ -9,5 +9,5 @@ type Props = { children: ReactNode };
 export function RequireAuth({ children }: Props) {
   const { user, loading } = useAuth();
   if (loading) return null;
-  return user ? <>{children}</> : <Navigate to="/auth/register" replace />;
+  return user ? <>{children}</> : <Navigate to="/auth/login" replace />;
 }
