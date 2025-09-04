@@ -1,69 +1,51 @@
-# React + TypeScript + Vite
+# Трекер подписок и платежей
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+🚀 [Онлайн запуск](https://subscription-tracker-obck.vercel.app)
 
-Currently, two official plugins are available:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Удобный трекер для управления подписками и автоматическими платежами.  
+Следи за расходами, не пропускай даты списаний и держи финансы под контролем.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🔍 Основные функции
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- ✅ **Регистрация и вход** через email и Google
+- ✅ **Управление подписками**: добавление, редактирование, удаление с подтверждением
+- ✅ **Фильтрация и сортировка** по статусу (Активна, Отменена, Остановлена)
+- ✅ **Итоговая сумма активных подписок**
+- ✅ **Адаптивный интерфейс** — работает на мобильных и десктопе
+- ✅ **Хранение данных в Firebase Firestore** — безопасно и в реальном времени
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+## 🛠 Стек технологий
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+| Категория | Технология |
+|--------|-----------|
+| Фронтенд | React + TypeScript |
+| UI-библиотека | Chakra UI |
+| Роутинг | React Router |
+| Сборка | Vite |
+| Бэкенд | Firebase (Auth, Firestore) |
+| Хостинг | Vercel |
+| Контроль версий | Git + GitHub |
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
+---
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+## 🚀 Как запустить локально
+
+1. Клонирровать репозиторий:
+   git clone https://github.com/CruzzaderKing/Subscription-Tracker.git
+   cd Subscription-Tracker
+2. Установить зависимости проекта
+   npm install
+3. Создать файл .env в корне проекта
+   VITE_FIREBASE_API_KEY=your-api-key
+   VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+   VITE_FIREBASE_PROJECT_ID=your-project-id
+   VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+   VITE_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+   VITE_FIREBASE_APP_ID=your-app-id
+4. Запуск dev сервера
+   npm run dev
