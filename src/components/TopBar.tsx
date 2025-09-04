@@ -1,5 +1,4 @@
 import {
-  Avatar,
   CloseButton,
   Drawer,
   DrawerContent,
@@ -29,16 +28,12 @@ export default function TopBar() {
         top={0}
         zIndex={10}
       >
+        {/* Логотип */}
         <Flex align="center" gap={3}>
-          <Avatar
-            size={{ base: 'xs', md: 'md' }}
-            name="Трекер подписок и платежей"
-            bg="black"
-            color="white"
-          />
-          <Text textStyle="h2">Logo</Text>
+          <Text textStyle="h2">Трекер подписок</Text>
         </Flex>
 
+        {/* Кнопка меню */}
         <IconButton aria-label="Open menu" icon={<FiMenu />} onClick={onOpen} variant="ghost" />
       </Flex>
 

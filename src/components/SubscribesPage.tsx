@@ -1,10 +1,9 @@
-// src/components/SubscriptionsTable.tsx
 import {
   AlertDialog,
   AlertDialogBody,
+  AlertDialogContent,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogContent,
   AlertDialogOverlay,
   Badge,
   Box,
@@ -21,9 +20,9 @@ import {
   ModalBody,
   ModalCloseButton,
   ModalContent,
+  ModalFooter,
   ModalHeader,
   ModalOverlay,
-  ModalFooter,
   Select,
   Stack,
   Table,
@@ -71,8 +70,8 @@ export default function SubscriptionsTable() {
 
   const [items, setItems] = useState<Subscription[]>([]);
   const [editing, setEditing] = useState<EditingState | null>(null);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null); // ID подписки для удаления
-  const cancelRef = useRef<HTMLButtonElement>(null); // для AlertDialog
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const cancelRef = useRef<HTMLButtonElement>(null);
 
   const modal = useDisclosure();
   const toast = useToast();
@@ -85,7 +84,11 @@ export default function SubscriptionsTable() {
     return listenSubscriptions(uid, setItems);
   }, [uid]);
 
-  const total = useMemo(() => items.reduce((s, x) => s + (Number(x.amount) || 0), 0), [items]);
+  const totalActive = useMemo(() => {
+    return items
+      .filter((item) => item.status === 'Активна')
+      .reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  }, [items]);
 
   const handleDeleteConfirmed = async (id: string) => {
     try {
@@ -95,7 +98,7 @@ export default function SubscriptionsTable() {
       const message = err instanceof Error ? err.message : String(err);
       toast({ title: 'Ошибка удаления', description: message, status: 'error' });
     } finally {
-      setIsDeleting(null); // Скрываем модалку
+      setIsDeleting(null);
     }
   };
 
@@ -182,7 +185,6 @@ export default function SubscriptionsTable() {
                       <MenuList>
                         <MenuItem onClick={() => navigate(`/subs/${s.id}`)}>Изменить</MenuItem>
 
-                        {/* Модальное окно подтверждения удаления */}
                         <AlertDialog
                           isOpen={isDeleting === s.id}
                           leastDestructiveRef={cancelRef}
@@ -193,12 +195,10 @@ export default function SubscriptionsTable() {
                               <AlertDialogHeader fontSize="lg" fontWeight="bold">
                                 Удалить подписку?
                               </AlertDialogHeader>
-
                               <AlertDialogBody>
                                 Вы уверены, что хотите удалить <strong>{s.name}</strong>? Это
                                 действие нельзя отменить.
                               </AlertDialogBody>
-
                               <AlertDialogFooter>
                                 <Button ref={cancelRef} onClick={() => setIsDeleting(null)}>
                                   Отмена
@@ -215,7 +215,6 @@ export default function SubscriptionsTable() {
                           </AlertDialogOverlay>
                         </AlertDialog>
 
-                        {/* Кнопка "Удалить" — открывает модалку */}
                         <MenuItem
                           color="red.500"
                           onClick={() => setIsDeleting(s.id)}
@@ -230,10 +229,10 @@ export default function SubscriptionsTable() {
               ))}
               <Tr>
                 <Td colSpan={5} textAlign="right" fontWeight="semibold">
-                  Итого
+                  Итого (Активные)
                 </Td>
                 <Td isNumeric fontWeight="semibold">
-                  {formatMoney(total)}
+                  {formatMoney(totalActive)}
                 </Td>
                 <Td />
               </Tr>
@@ -242,7 +241,6 @@ export default function SubscriptionsTable() {
         </Box>
       </Box>
 
-      {/* Модалка редактирования */}
       <Modal isOpen={modal.isOpen} onClose={modal.onClose} size="md">
         <ModalOverlay />
         <ModalContent>
@@ -325,7 +323,6 @@ export default function SubscriptionsTable() {
   );
 }
 
-// Вспомогательный компонент для полей формы
 function FormField({ label, children }: { label: string; children: ReactNode }) {
   return (
     <Box>
@@ -337,5 +334,4 @@ function FormField({ label, children }: { label: string; children: ReactNode }) 
   );
 }
 
-// Импортируем иконку удаления
 import { DeleteIcon } from '@chakra-ui/icons';

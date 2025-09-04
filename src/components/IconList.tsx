@@ -9,15 +9,7 @@ export function NavMenu({ activeKey = 'subs', onChange }: NavMenuProps) {
   const hoverBg = useColorModeValue('gray.100', 'whiteAlpha.100');
   const activeBg = useColorModeValue('gray.200', 'whiteAlpha.200');
 
-  const Item = ({
-    icon,
-    label,
-    value,
-  }: {
-    icon: IconType; // ✅ вместо any
-    label: string;
-    value: TabKey;
-  }) => (
+  const Item = ({ icon, label, value }: { icon: IconType; label: string; value: TabKey }) => (
     <Button
       onClick={() => onChange?.(value)}
       justifyContent="flex-start"

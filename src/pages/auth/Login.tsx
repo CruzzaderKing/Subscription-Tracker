@@ -17,11 +17,10 @@ import {
 } from 'firebase/auth';
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
-import { Link, useNavigate } from 'react-router-dom'; // ← Добавлен useNavigate
+import { Link, useNavigate } from 'react-router-dom';
 
 import { auth, googleProvider } from '../../lib/firebase';
 
-// Универсальная функция для извлечения сообщения об ошибке
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (typeof error === 'object' && error !== null && 'message' in error) {
@@ -35,7 +34,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const toast = useToast();
-  const navigate = useNavigate(); // ← Навигация без перезагрузки
+  const navigate = useNavigate();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +84,6 @@ export default function LoginPage() {
         });
         await signInWithRedirect(auth, googleProvider);
       } else if (error.code === 'auth/popup-closed-by-user') {
-        // Пользователь закрыл окно — просто выходим молча
         return;
       } else {
         toast({
@@ -123,6 +121,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="email@example.com"
+                autoComplete="username"
                 autoFocus
               />
             </FormControl>
@@ -133,7 +132,8 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="Пароль"
+                autoComplete="current-password"
               />
             </FormControl>
 

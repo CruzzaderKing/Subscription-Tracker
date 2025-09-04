@@ -237,7 +237,6 @@ export default function SubscriptionEditPage() {
                 </FormControl>
               </SimpleGrid>
 
-              {/* Кнопки: «Удалить» слева; «Отмена/Сохранить» справа; на мобилке — в столбик */}
               <Flex
                 justify={{ base: 'stretch', md: 'flex-end' }}
                 align={{ base: 'stretch', md: 'center' }}

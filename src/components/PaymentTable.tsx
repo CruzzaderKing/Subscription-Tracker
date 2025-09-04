@@ -20,14 +20,13 @@ import type { Subscription } from '../types/subscription';
 export type PaymentRow = {
   id: string;
   name: string;
-  date: string; // ближайшая дата списания
-  period: string; // месяц и год ближайшего списания
+  date: string;
+  period: string;
   amount: number;
 };
 
 type Props = Record<string, never>;
 
-// для парсинга дат вида "15 сен 2025 г." и ISO "YYYY-MM-DD"
 const RU_MONTHS: Record<string, number> = {
   янв: 0,
   фев: 1,
@@ -76,7 +75,6 @@ function formatMonthYearRu(d: Date | null): string {
   return d.toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
 }
 
-// ближайшая дата списания исходя из даты начала и цикла
 function nextChargeDate(startDate: string, cycle: string): Date | null {
   const start = tryParseRuDate(startDate);
   if (!start) return null;

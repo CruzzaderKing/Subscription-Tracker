@@ -115,7 +115,7 @@ export default function SubscriptionFormPage() {
             <FormLabel>Название</FormLabel>
             <Input
               size="lg"
-              placeholder="Напр., Netflix Premium"
+              placeholder="Netflix Premium"
               value={form.name}
               onChange={(e) => {
                 const name = e.target.value;

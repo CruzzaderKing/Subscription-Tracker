@@ -41,7 +41,6 @@ function DonutTooltip({ active, payload }: CustomTooltipProps): ReactElement | n
   );
 }
 
-// Годовой платёж переводим в «руб/мес»
 function toMonthlyAmount(sub: Subscription): number {
   const raw = Number(sub.amount) || 0;
   if (sub.cycle === 'Ежегодно') return raw / 12;

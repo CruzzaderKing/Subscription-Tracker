@@ -130,7 +130,6 @@ export default function RegisterPage() {
         });
         await signInWithRedirect(auth, googleProvider);
       } else if (error.code === 'auth/popup-closed-by-user') {
-        // Пользователь закрыл окно — просто выходим
         return;
       } else {
         toast({
