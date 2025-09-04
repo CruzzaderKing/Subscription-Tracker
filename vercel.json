@@ -14,14 +14,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "routes": [
-    {
-      "src": "/assets/(.*)",
-      "dest": "/dist/assets/$1",
-      "headers": {
-        "Content-Type": "application/javascript"
-      }
-    }
   ]
 }
